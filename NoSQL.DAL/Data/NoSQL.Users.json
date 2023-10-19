@@ -1,0 +1,51 @@
+[{
+  "_id": {
+    "$oid": "65313027ac4ca7ec7ccf8540"
+  },
+  "email": "artemrserb@gmail.com",
+  "password": "zQ5yCXb5tcXQ",
+  "firstname": "Artem",
+  "lastname": "Serbulov",
+  "interests": [
+    "Programming",
+    "Statistics",
+    "Soccer"
+  ],
+  "friends": [
+    "Vlad Kutsyk",
+    "Ivan Janchencko"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6531585ef9448490c5971eb3"
+  },
+  "email": "partemrserb@gmail.com",
+  "password": "YpdEZBwedtGJ",
+  "firstname": "Artem",
+  "lastname": "Serbulov",
+  "interests": null,
+  "friends": null
+},
+{
+  "_id": {
+    "$oid": "6531b899b81630adfe989870"
+  },
+  "email": "fabulouostap@gmail.com",
+  "password": "x7unzF5vuMcm",
+  "firstname": "Ostap",
+  "lastname": "Lalyk",
+  "interests": null,
+  "friends": null
+},
+{
+  "_id": {
+    "$oid": "6531bb30513dd8582f008442"
+  },
+  "email": "bondyr@gmail.com",
+  "password": "az4444",
+  "firstname": "Boghdan",
+  "lastname": "Lokomotyv",
+  "interests": null,
+  "friends": null
+}]

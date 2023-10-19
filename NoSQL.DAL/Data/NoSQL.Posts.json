@@ -1,0 +1,177 @@
+[{
+  "_id": {
+    "$oid": "6531b498b16c449c6f9b15ea"
+  },
+  "title": "Post Two",
+  "comments": [
+    {
+      "_id": {
+        "$oid": "6531b4abb16c449c6f9b15ef"
+      },
+      "body": "Comment one",
+      "ownerid": "6531585ef9448490c5971eb3",
+      "date": {
+        "$date": "2023-10-19T22:58:51.565Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6531b8cab81630adfe989873"
+      },
+      "body": "Comment one",
+      "ownerid": "6531b899b81630adfe989870",
+      "date": {
+        "$date": "2023-10-19T23:16:26.744Z"
+      },
+      "like": {
+        "usersidliked": [
+          "6531bb30513dd8582f008442"
+        ],
+        "likes": 1
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6531b8f7b81630adfe989876"
+      },
+      "body": "Comment two",
+      "ownerid": "6531b899b81630adfe989870",
+      "date": {
+        "$date": "2023-10-19T23:17:11.414Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6531bba2513dd8582f00845d"
+      },
+      "body": "Comment four",
+      "ownerid": "6531bb30513dd8582f008442",
+      "date": {
+        "$date": "2023-10-19T23:28:34.032Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    }
+  ],
+  "date": {
+    "$date": "2023-10-19T22:58:32.815Z"
+  },
+  "body": "Body of post two",
+  "category": "Weather",
+  "like": {
+    "usersidliked": [],
+    "likes": 0
+  },
+  "ownerid": "6531585ef9448490c5971eb3"
+},
+{
+  "_id": {
+    "$oid": "6531b8b3b81630adfe989871"
+  },
+  "title": "Post One",
+  "comments": [
+    {
+      "_id": {
+        "$oid": "6531bbc6513dd8582f008462"
+      },
+      "body": "Comment One",
+      "ownerid": "6531bb30513dd8582f008442",
+      "date": {
+        "$date": "2023-10-19T23:29:10.364Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    }
+  ],
+  "date": {
+    "$date": "2023-10-19T23:16:03.479Z"
+  },
+  "body": "Body of post one",
+  "category": "Art",
+  "like": {
+    "usersidliked": [
+      "6531b899b81630adfe989870",
+      "6531bb30513dd8582f008442"
+    ],
+    "likes": 2
+  },
+  "ownerid": "6531b899b81630adfe989870"
+},
+{
+  "_id": {
+    "$oid": "6531b972dc0b82fb97d0be61"
+  },
+  "title": "Post Three",
+  "comments": [
+    {
+      "_id": {
+        "$oid": "6531b997dc0b82fb97d0be65"
+      },
+      "body": "Comment One",
+      "ownerid": "6531b899b81630adfe989870",
+      "date": {
+        "$date": "2023-10-19T23:19:51.452Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    }
+  ],
+  "date": {
+    "$date": "2023-10-19T23:19:14.563Z"
+  },
+  "body": "Body of post three",
+  "category": "Music",
+  "like": {
+    "usersidliked": [
+      "6531bb30513dd8582f008442"
+    ],
+    "likes": 1
+  },
+  "ownerid": "6531b899b81630adfe989870"
+},
+{
+  "_id": {
+    "$oid": "6531bb49513dd8582f008443"
+  },
+  "title": "Post four",
+  "comments": [
+    {
+      "_id": {
+        "$oid": "6531bbd8513dd8582f008463"
+      },
+      "body": "Comment One",
+      "ownerid": "6531bb30513dd8582f008442",
+      "date": {
+        "$date": "2023-10-19T23:29:28.612Z"
+      },
+      "like": {
+        "usersidliked": [],
+        "likes": 0
+      }
+    }
+  ],
+  "date": {
+    "$date": "2023-10-19T23:27:05.595Z"
+  },
+  "body": "Body of post four",
+  "category": "Philosophy",
+  "like": {
+    "usersidliked": [],
+    "likes": 0
+  },
+  "ownerid": "6531bb30513dd8582f008442"
+}]
