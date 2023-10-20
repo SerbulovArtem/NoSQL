@@ -12,8 +12,8 @@
     "Soccer"
   ],
   "friends": [
-    "Vlad Kutsyk",
-    "Ivan Janchencko"
+    "6531585ef9448490c5971eb3",
+    "6531b899b81630adfe989870"
   ]
 },
 {
@@ -24,8 +24,8 @@
   "password": "YpdEZBwedtGJ",
   "firstname": "Artem",
   "lastname": "Serbulov",
-  "interests": null,
-  "friends": null
+  "interests": [],
+  "friends": []
 },
 {
   "_id": {
@@ -35,8 +35,8 @@
   "password": "x7unzF5vuMcm",
   "firstname": "Ostap",
   "lastname": "Lalyk",
-  "interests": null,
-  "friends": null
+  "interests": [],
+  "friends": []
 },
 {
   "_id": {
@@ -46,6 +46,74 @@
   "password": "az4444",
   "firstname": "Boghdan",
   "lastname": "Lokomotyv",
-  "interests": null,
-  "friends": null
+  "interests": [],
+  "friends": []
+},
+{
+  "_id": {
+    "$oid": "6531d4cc0e4a45a117603c19"
+  },
+  "email": "fkiok@gmail.com",
+  "password": "qwerty",
+  "firstname": "Lok",
+  "lastname": "Fol",
+  "interests": [],
+  "friends": [
+    "6531d51b0e4a45a117603c31"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6531d4e80e4a45a117603c21"
+  },
+  "email": "ufhnaosind@gmail.com",
+  "password": "131313",
+  "firstname": "Sherlock",
+  "lastname": "Holmes",
+  "interests": [],
+  "friends": []
+},
+{
+  "_id": {
+    "$oid": "6531d4fb0e4a45a117603c29"
+  },
+  "email": "nbrognbr@gmail.com",
+  "password": "asdf",
+  "firstname": "Koi",
+  "lastname": "Lop",
+  "interests": [],
+  "friends": []
+},
+{
+  "_id": {
+    "$oid": "6531d51b0e4a45a117603c31"
+  },
+  "email": "mbroighnh@gmail.com",
+  "password": "Epam",
+  "firstname": "Carl",
+  "lastname": "Robb",
+  "interests": [],
+  "friends": []
+},
+{
+  "_id": {
+    "$oid": "6531d5340e4a45a117603c39"
+  },
+  "email": "bnrgifkhj@gmail.com",
+  "password": "Engine",
+  "firstname": "Alphabet",
+  "lastname": "Google",
+  "interests": [],
+  "friends": []
+},
+{
+  "_id": {
+    "$oid": "6531d5520e4a45a117603c41"
+  },
+  "email": "uyitrofkmjg@gmail.com",
+  "password": "OpPA",
+  "firstname": "Op",
+  "lastname": "Pa",
+  "interests": [],
+  "friends": []
 }]

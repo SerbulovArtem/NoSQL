@@ -14,8 +14,17 @@ namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoDBNoSQL
     public class UsersRepositoryBLL : UsersRepository
     {
         public UsersRepositoryBLL(Driver driver) : base(driver)
+        { }
+        public void AddFriend(string ownerid, string userid)
         {
+            var updateDefinition = Builders<User>.Update.Push("friends", userid);
+            _collection.UpdateOne(p => p.Id == ownerid, updateDefinition);
+        }
 
+        public void DeleteFriend(string ownerid, string userid)
+        {
+            var updateDefinition = Builders<User>.Update.Pull("friends", userid);
+            _collection.UpdateOne(p => p.Id == ownerid, updateDefinition);
         }
     }
 }

@@ -8,6 +8,7 @@ using NoSQL.DAL.Repositories.Abstract.DataBaseMongoDBNoSQL;
 using NoSQL.BLL.Repositories.Concreate.DataBaseMongoDBNoSQL;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.Runtime.InteropServices;
 
 namespace NoSQL.Admin.UI
 {
@@ -37,8 +38,8 @@ namespace NoSQL.Admin.UI
         private bool DemoOnce()
         {
             Console.WriteLine("Select option:\n1. - Print All Posts.\n2. - Create Post.\n3. - Replace Post." +
-                "\n4. - Delete Post.\n5. - Create Comment.\n6. - Print All Comments from one post.\n7. - Like post." +
-                "\n8. - Like Comment\n0. - Login Menu.\n-1 - Exit");
+                "\n4. - Delete Post.\n5. - Create Comment.\n6. - Print All Comments from one post.\n7. - Like post.\n8. - UnLike post" +
+                "\n9. - Like Comment.\n10. - UnLike Comment.\n11. - Add Friend.\n12. - Delete Friend.\n13. - Print All posts from One user\n0. - Login Menu.\n-1 - Exit");
             string userInput = Console.ReadLine();
 
             try
@@ -67,7 +68,22 @@ namespace NoSQL.Admin.UI
                         LikePost();
                         return true;
                     case "8":
+                        UnLikePost();
+                        return true;
+                    case "9":
                         LikeComment();
+                        return true;
+                    case "10":
+                        UnLikeComment();
+                        return true;
+                    case "11":
+                        AddFriend();
+                        return true;
+                    case "12":
+                        DeleteFriend();
+                        return true;
+                    case "13":
+                        PrintAllPostsFromOneUser();
                         return true;
                     case "0":
                         while (Authentication()) { }
@@ -141,13 +157,16 @@ namespace NoSQL.Admin.UI
                     Email = email,
                     FirstName = firstname,
                     LastName = lastname,
-                    Password = password
+                    Password = password,
+                    Interests = new List<string>(),
+                    Friends = new List<string>()
                 };
                 _usersRepository.Create(newUser);
                 _ownerId = newUser.Id;
 
                 Console.WriteLine($"~~~~~Access granted~~~~~" +
                             $"\n~~~~~Welcome {newUser.FirstName} {newUser.LastName}~~~~~");
+                PrintAllSortedPosts();
                 return false;
             }
             Console.WriteLine("~~~~~Access denied~~~~~" +
@@ -175,6 +194,7 @@ namespace NoSQL.Admin.UI
                     _ownerId = user.Id;
                     Console.WriteLine($"~~~~~Access granted~~~~~" +
                         $"\n~~~~~Welcome {user.FirstName} {user.LastName}~~~~~");
+                    PrintAllSortedPosts();
                     return false;
                 }
                 else
@@ -189,6 +209,17 @@ namespace NoSQL.Admin.UI
                 Console.WriteLine("~~~~~Access denied~~~~~" +
                 "\n~~~~~Wrong Email~~~~~");
                 return true;
+            }
+        }
+
+        public void PrintAllSortedPosts()
+        {
+            var list = _postsRepository.GetCollection().Find(p => true).ToList().OrderByDescending(p => p.PostCreatedDate).ToList();
+            foreach (var post in list)
+            {
+                var ownerUser = _usersRepository.GetCollection().Find(p => p.Id == post.OwnerId).Single();
+                Console.WriteLine($"PostId: {post.Id}\nTitle: {post.Title}\nBody: {post.PostBody}\nCategory: {post.Category}, Date: {post.PostCreatedDate}, Likes: {post.Like.Likes}\n" +
+                    $"Owner: {ownerUser.FirstName} {ownerUser.LastName}\n");
             }
         }
 
@@ -403,6 +434,150 @@ namespace NoSQL.Admin.UI
                     }
                 }
                 catch (Exception ex) 
+                {
+                    Console.WriteLine("This comment is not exist");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This post is not exist");
+            }
+        }
+
+        public void AddFriend()
+        {
+            Console.WriteLine("Enter email");
+            var email = Console.ReadLine();
+            if (email == _email)
+            {
+                Console.WriteLine("You can't add yourself");
+                return;
+            }
+            try
+            {
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
+
+                if (existingUser.Friends.Contains(existingUser.Id)) 
+                {
+                    Console.WriteLine("This user was already added by you\nCommand denied");
+                }
+                else
+                {
+                    _usersRepository.AddFriend(_ownerId, existingUser.Id);
+                    Console.WriteLine("Friend Added");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This user is not exist");
+            }
+        }
+
+        public void DeleteFriend()
+        {
+            Console.WriteLine("Enter email");
+            var email = Console.ReadLine();
+            if (email == _email)
+            {
+                Console.WriteLine("You can't delete yourself");
+                return;
+            }
+            try
+            {
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
+                var myuser = _usersRepository.GetCollection().Find(p => p.Email == _email).Single();
+
+                if (myuser.Friends.Contains(existingUser.Id))
+                {
+                    _usersRepository.DeleteFriend(_ownerId, existingUser.Id);
+                    Console.WriteLine("Friend Deleted");
+                }
+                else
+                {
+                    Console.WriteLine("This user was already deleted or was not added by you\nCommand denied");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This user is not exist");
+            }
+        }
+
+        public void PrintAllPostsFromOneUser()
+        {
+            Console.WriteLine("Enter email");
+            var email = Console.ReadLine();
+            try
+            {
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
+                var list = _postsRepository.GetCollection().Find(p => true).ToList();
+                foreach (var post in list)
+                {
+                    if (post.OwnerId == existingUser.Id)
+                    {
+                        var ownerUser = _usersRepository.GetCollection().Find(p => p.Id == post.OwnerId).Single();
+                        Console.WriteLine($"PostId: {post.Id}\nTitle: {post.Title}\nBody: {post.PostBody}\nCategory: {post.Category}, Date: {post.PostCreatedDate}, Likes: {post.Like.Likes}\n" +
+                            $"Owner: {ownerUser.FirstName} {ownerUser.LastName}\n");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This user is not exist");
+            }
+        }
+
+        public void UnLikePost()
+        {
+            Console.WriteLine("Enter Post Id");
+            var postId = Console.ReadLine();
+            try
+            {
+                var existingPost = _postsRepository.GetCollection().Find(p => p.Id == postId).Single();
+                if (existingPost.Like.UsersIdLiked.Contains(_ownerId))
+                {
+                    _postsRepository.UnLikePost(existingPost.Id, _ownerId);
+                    Console.WriteLine("Post UnLiked");
+                }
+                else
+                {
+                    Console.WriteLine("This post was already unliked by you\nCommand denied");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This post is not exist");
+            }
+        }
+
+        public void UnLikeComment()
+        {
+            Console.WriteLine("Enter Post Id");
+            var postId = Console.ReadLine();
+            try
+            {
+                var existingPost = _postsRepository.GetCollection().Find(p => p.Id == postId).Single();
+                try
+                {
+                    Console.WriteLine("Enter Comment Id");
+                    var commentId = Console.ReadLine();
+                    var commentsList = existingPost.Comments;
+                    var existingComment = commentsList.Find(p => p.Id == commentId);
+                    if (existingComment.Like.UsersIdLiked.Contains(_ownerId) && existingComment != null)
+                    {
+                        _postsRepository.UnLikeComment(existingPost.Id, commentId, _ownerId);
+                        Console.WriteLine("Comment UnLiked");
+                    }
+                    else if (existingComment == null)
+                    {
+                        Console.WriteLine("This comment is not exist");
+                    }
+                    else
+                    {
+                        Console.WriteLine("This comment was already unliked by you\nCommand denied");
+                    }
+                }
+                catch (Exception ex)
                 {
                     Console.WriteLine("This comment is not exist");
                 }

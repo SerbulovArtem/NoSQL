@@ -34,9 +34,25 @@ namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoDBNoSQL
             _collection.UpdateOne(filter, updateDefinition);
         }
 
+        public void UnLikeComment(string postid, string commentid, string userid)
+        {
+            var filter = Builders<Post>.Filter.Eq(p => p.Id, postid) & Builders<Post>.Filter.ElemMatch(p => p.Comments, c => c.Id == commentid);
+            var updateDefinition = Builders<Post>.Update
+                .Inc("Comments.$.Like.Likes", -1)
+                .Pull("Comments.$.Like.UsersIdLiked", userid);
+
+            _collection.UpdateOne(filter, updateDefinition);
+        }
+
         public void LikePost(string postid, string userid)
         {
             var updateDefinition = Builders<Post>.Update.Inc("like.likes", 1).Push("like.usersidliked", userid);
+            _collection.UpdateOne(p => p.Id == postid, updateDefinition);
+        }
+
+        public void UnLikePost(string postid, string userid)
+        {
+            var updateDefinition = Builders<Post>.Update.Inc("like.likes", -1).Pull("like.usersidliked", userid);
             _collection.UpdateOne(p => p.Id == postid, updateDefinition);
         }
     }
