@@ -1,31 +1,34 @@
-﻿using NoSQL.DAL.Data;
-using NoSQL.DTO.Models;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows;
-using NoSQL.DAL.Repositories.Concreate.DataBaseMongoDBNoSQL;
-using NoSQL.DAL.Repositories.Abstract.DataBaseMongoDBNoSQL;
-using NoSQL.BLL.Repositories.Concreate.DataBaseMongoDBNoSQL;
+﻿using NoSQL.Mongo.DAL.Data;
+using NoSQL.Mongo.DTO.Models;
+using MongoDriver = NoSQL.Mongo.DAL.Data.Driver;
+using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
+using MongoPost = NoSQL.Mongo.DTO.Models.Post;
+using Neo4jPost = NoSQL.Neo4j.DTO.Models.Post;
+using MongoUser = NoSQL.Mongo.DTO.Models.User;
+using Neo4jUser = NoSQL.Neo4j.DTO.Models.User;
+using MongoComment = NoSQL.Mongo.DTO.Models.Comment;
+using Neo4jComment = NoSQL.Neo4j.DTO.Models.Comment;
+using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL;
 using MongoDB.Driver;
-using MongoDB.Bson;
-using System.Runtime.InteropServices;
 
 namespace NoSQL.Admin.UI
 {
     class Menu
     {
-        private Driver _driver;
-        private PostsRepositoryBLL _postsRepository;
-        private UsersRepositoryBLL _usersRepository;
+        private MongoDriver _mongoDriver;
+        private Neo4jDriver _neo4JDriver;
+        private PostsRepositoryMongoNeo4jBLL _postsRepository;
+        private UsersRepositoryMongoNeo4jBLL _usersRepository;
         private string _email;
         private string _password;
         private string _ownerId;
 
         public Menu()
         {
-            _driver = new Driver(1);
-            _postsRepository = new PostsRepositoryBLL(_driver);
-            _usersRepository = new UsersRepositoryBLL(_driver);
+            _mongoDriver = new MongoDriver(1);
+            _neo4JDriver = new Neo4jDriver();
+            _postsRepository = new PostsRepositoryMongoNeo4jBLL(_mongoDriver, _neo4JDriver);
+            _usersRepository = new UsersRepositoryMongoNeo4jBLL(_mongoDriver, _neo4JDriver);
 
             while (Authentication()) { }
         }
@@ -38,8 +41,9 @@ namespace NoSQL.Admin.UI
         private bool DemoOnce()
         {
             Console.WriteLine("Select option:\n1. - Print All Posts.\n2. - Create Post.\n3. - Replace Post." +
-                "\n4. - Delete Post.\n5. - Create Comment.\n6. - Print All Comments from one post.\n7. - Like post.\n8. - UnLike post" +
-                "\n9. - Like Comment.\n10. - UnLike Comment.\n11. - Add Friend.\n12. - Delete Friend.\n13. - Print All posts from One user\n0. - Login Menu.\n-1 - Exit");
+                "\n4. - Delete Post.\n5. - Create Comment.\n6. - Print All Comments from one post.\n7. - Like post.\n8. - UnLike post." +
+                "\n9. - Like Comment.\n10. - UnLike Comment.\n11. - Add Friend.\n12. - Delete Friend.\n13. - Print All posts from One user." +
+                "\n14. - Add Interest.\n15. - Is friend/Length of path\n0. - Login Menu.\n-1 - Exit");
             string userInput = Console.ReadLine();
 
             try
@@ -85,6 +89,12 @@ namespace NoSQL.Admin.UI
                     case "13":
                         PrintAllPostsFromOneUser();
                         return true;
+                    case "14":
+                        AddInterest();
+                        return true;
+                    case "15":
+                        IsFriendOrPath();
+                        return true;
                     case "0":
                         while (Authentication()) { }
                         return true;
@@ -97,7 +107,7 @@ namespace NoSQL.Admin.UI
             catch (Exception ex)
             {
                 Console.WriteLine($"Error occured, check your input data");
-                Console.WriteLine();
+                Console.WriteLine(ex);
                 return true;
             }
         }
@@ -152,7 +162,7 @@ namespace NoSQL.Admin.UI
             }
             catch (Exception ex) 
             {
-                var newUser = new User
+                var newUser = new MongoUser
                 {
                     Email = email,
                     FirstName = firstname,
@@ -163,6 +173,12 @@ namespace NoSQL.Admin.UI
                 };
                 _usersRepository.Create(newUser);
                 _ownerId = newUser.Id;
+
+                var neo4juser = new Neo4jUser
+                {
+                    UserId = _ownerId
+                };
+                _usersRepository.Create(neo4juser);
 
                 Console.WriteLine($"~~~~~Access granted~~~~~" +
                             $"\n~~~~~Welcome {newUser.FirstName} {newUser.LastName}~~~~~");
@@ -243,7 +259,7 @@ namespace NoSQL.Admin.UI
             Console.WriteLine("Enter category:");
             string category = Console.ReadLine();
 
-            Post newPost = new Post
+            MongoPost newPost = new MongoPost
             {
                 Title = title,
                 PostBody = postBody,
@@ -257,7 +273,17 @@ namespace NoSQL.Admin.UI
                 OwnerId = _ownerId,
                 Comments = new List<Comment>()
             };
+
             _postsRepository.Create(newPost);
+
+            Neo4jPost neo4JPost = new Neo4jPost
+            {
+                OwnerId = _ownerId,
+                PostId = newPost.Id
+            };
+
+            _postsRepository.Create(neo4JPost);
+            _postsRepository.CreateUserPostRelationship(_ownerId, newPost.Id);
             Console.WriteLine("Post Added");
         }
 
@@ -276,7 +302,7 @@ namespace NoSQL.Admin.UI
                     string postBody = Console.ReadLine();
                     Console.WriteLine("Enter category:");
                     string category = Console.ReadLine();
-                    Post newPost = new Post
+                    MongoPost newPost = new MongoPost
                     {
                         Id = postId,
                         Title = title,
@@ -315,11 +341,17 @@ namespace NoSQL.Admin.UI
                 var existingPost = _postsRepository.GetCollection().Find(p => p.Id == postId).Single();
                 if (existingPost.OwnerId == _ownerId) 
                 {
-                    Post newPost = new Post
+                    MongoPost newPost = new MongoPost
                     {
                         Id = postId
                     };
+                    Neo4jPost neo4JPost = new Neo4jPost
+                    {
+                        OwnerId = _ownerId,
+                        PostId = newPost.Id
+                    };
                     _postsRepository.Delete(newPost);
+                    _postsRepository.Delete(neo4JPost);
                     Console.WriteLine("Post Deleted");
                 }
                 else
@@ -342,7 +374,7 @@ namespace NoSQL.Admin.UI
                 var existingPost = _postsRepository.GetCollection().Find(p => p.Id == postId).Single();
                 Console.WriteLine("Enter body: ");
                 string commentBody = Console.ReadLine();
-                Comment newComment = new Comment
+                MongoComment newComment = new MongoComment
                 {
                     CommentBody = commentBody,
                     OwnerId = _ownerId,
@@ -353,7 +385,16 @@ namespace NoSQL.Admin.UI
                         UsersIdLiked = new List<string>()
                     }
                 };
-                _postsRepository.CreateComment(newComment, postId);
+
+                _postsRepository.CreateComment(newComment, postId, _ownerId);
+
+                Neo4jComment neo4JComment = new Neo4jComment
+                {
+                    CommentId = newComment.Id,
+                    OwnerId = _ownerId
+                };
+
+                _postsRepository.CreateCommentRelations(neo4JComment, postId, _ownerId);
                 Console.WriteLine("Comment Added");
             }
             catch (Exception ex)
@@ -446,24 +487,23 @@ namespace NoSQL.Admin.UI
 
         public void AddFriend()
         {
-            Console.WriteLine("Enter email");
-            var email = Console.ReadLine();
-            if (email == _email)
+            Console.WriteLine("Enter User Id");
+            var userid = Console.ReadLine();
+            if (userid == _ownerId)
             {
                 Console.WriteLine("You can't add yourself");
                 return;
             }
             try
             {
-                var existingUser = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
-
-                if (existingUser.Friends.Contains(existingUser.Id)) 
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Id == userid).Single();
+                if (existingUser.Friends.Contains(userid))
                 {
                     Console.WriteLine("This user was already added by you\nCommand denied");
                 }
                 else
                 {
-                    _usersRepository.AddFriend(_ownerId, existingUser.Id);
+                    _usersRepository.AddFriend(_ownerId, userid);
                     Console.WriteLine("Friend Added");
                 }
             }
@@ -475,21 +515,21 @@ namespace NoSQL.Admin.UI
 
         public void DeleteFriend()
         {
-            Console.WriteLine("Enter email");
-            var email = Console.ReadLine();
-            if (email == _email)
+            Console.WriteLine("Enter User Id");
+            var userid = Console.ReadLine();
+            if (userid == _ownerId)
             {
                 Console.WriteLine("You can't delete yourself");
                 return;
             }
             try
             {
-                var existingUser = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
-                var myuser = _usersRepository.GetCollection().Find(p => p.Email == _email).Single();
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Id == userid).Single();
+                var myuser = _usersRepository.GetCollection().Find(p => p.Id == _ownerId).Single();
 
-                if (myuser.Friends.Contains(existingUser.Id))
+                if (myuser.Friends.Contains(userid))
                 {
-                    _usersRepository.DeleteFriend(_ownerId, existingUser.Id);
+                    _usersRepository.DeleteFriend(_ownerId, userid);
                     Console.WriteLine("Friend Deleted");
                 }
                 else
@@ -563,14 +603,10 @@ namespace NoSQL.Admin.UI
                     var commentId = Console.ReadLine();
                     var commentsList = existingPost.Comments;
                     var existingComment = commentsList.Find(p => p.Id == commentId);
-                    if (existingComment.Like.UsersIdLiked.Contains(_ownerId) && existingComment != null)
+                    if (existingComment.Like.UsersIdLiked.Contains(_ownerId))
                     {
                         _postsRepository.UnLikeComment(existingPost.Id, commentId, _ownerId);
                         Console.WriteLine("Comment UnLiked");
-                    }
-                    else if (existingComment == null)
-                    {
-                        Console.WriteLine("This comment is not exist");
                     }
                     else
                     {
@@ -585,6 +621,53 @@ namespace NoSQL.Admin.UI
             catch (Exception ex)
             {
                 Console.WriteLine("This post is not exist");
+            }
+        }
+
+        public void AddInterest()
+        {
+            Console.WriteLine("Enter interest");
+            var interest = Console.ReadLine();
+            var existingUser = _usersRepository.GetCollection().Find(p => p.Email == _email).Single();
+            var interestsList = existingUser.Interests;
+            var existinginterest = interestsList.Find(p => p == interest);
+
+            if (existingUser.Interests.Contains(existinginterest))
+            {
+                Console.WriteLine("This interest was already added by you\nCommand denied");
+            }
+            else
+            {
+                _usersRepository.AddInterest(_ownerId, interest);
+                Console.WriteLine("Interest Added");
+            }
+        }
+
+        public void IsFriendOrPath()
+        {
+            Console.WriteLine("Enter User Id");
+            var userid = Console.ReadLine();
+            if (userid == _ownerId)
+            {
+                Console.WriteLine("You can't check yourself");
+                return;
+            }
+            try
+            {
+                var existingUser = _usersRepository.GetCollection().Find(p => p.Id == userid).Single();
+                try 
+                {
+                    var lenght = _usersRepository.PathLenghtToFriend(_ownerId, userid);
+                    Console.WriteLine($"Path lenght: {lenght}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("This user is not your friend");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("This user is not exist");
             }
         }
     }

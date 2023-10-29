@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace NoSQL.DAL.Repositories.Abstract.DataBaseMongoDBNoSQL
+namespace NoSQL.Mongo.DAL.Repositories.Abstract.DataBaseMongoNoSQL
 {
     public interface IRepository<T>
     {

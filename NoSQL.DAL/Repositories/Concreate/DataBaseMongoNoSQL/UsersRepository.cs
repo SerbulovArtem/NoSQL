@@ -1,14 +1,14 @@
 ﻿using MongoDB.Driver;
-using NoSQL.DAL.Data;
-using NoSQL.DAL.Repositories.Abstract.DataBaseMongoDBNoSQL;
-using NoSQL.DTO.Models;
+using NoSQL.Mongo.DAL.Data;
+using NoSQL.Mongo.DAL.Repositories.Abstract.DataBaseMongoNoSQL;
+using NoSQL.Mongo.DTO.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoSQL.DAL.Repositories.Concreate.DataBaseMongoDBNoSQL
+namespace NoSQL.Mongo.DAL.Repositories.Concreate.DataBaseMongoNoSQL
 {
     public class UsersRepository : IUsersRepository
     {

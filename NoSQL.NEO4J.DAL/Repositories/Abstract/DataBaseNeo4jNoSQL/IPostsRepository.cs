@@ -1,11 +1,11 @@
-﻿using NoSQL.DTO.Models;
+﻿using NoSQL.Neo4j.DTO.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoSQL.DAL.Repositories.Abstract.DataBaseMongoDBNoSQL
+namespace NoSQL.Neo4j.DAL.Repositories.Abstract.DataBaseNeo4jNoSQL
 {
     public interface IPostsRepository : IRepository<Post>
     {

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoSQL.DTO.Models
+namespace NoSQL.Mongo.DTO.Models
 {
     [BsonIgnoreExtraElements]
     public class Comment

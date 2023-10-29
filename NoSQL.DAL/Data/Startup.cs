@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 
-namespace NoSQL.DAL.Data
+namespace NoSQL.Mongo.DAL.Data
 {
     public class Startup
     {

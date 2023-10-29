@@ -1,5 +1,5 @@
-﻿using NoSQL.DTO.Models;
-using NoSQL.DAL.Data;
+﻿using NoSQL.Mongo.DTO.Models;
+using NoSQL.Mongo.DAL.Data;
 using System;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System.Net;
 
-namespace NoSQL.DAL.Data;
+namespace NoSQL.Mongo.DAL.Data;
 
 
 public class Driver

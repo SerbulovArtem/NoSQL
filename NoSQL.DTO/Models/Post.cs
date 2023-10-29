@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 
-namespace NoSQL.DTO.Models
+namespace NoSQL.Mongo.DTO.Models
 {
     [BsonIgnoreExtraElements]
     public class Post

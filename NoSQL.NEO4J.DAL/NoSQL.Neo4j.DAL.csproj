@@ -10,13 +10,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-    <PackageReference Include="MongoDB.Bson" Version="2.22.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.22.0" />
+    <PackageReference Include="Neo4jClient" Version="5.1.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NoSQL.DAL\NoSQL.Mongo.DAL.csproj" />
-    <ProjectReference Include="..\NoSQL.NEO4J.DAL\NoSQL.Neo4j.DAL.csproj" />
+    <ProjectReference Include="..\NoSQL.Neo4j.DTO\NoSQL.Neo4j.DTO.csproj" />
   </ItemGroup>
 
 </Project>
