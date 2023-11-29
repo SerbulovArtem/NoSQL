@@ -13,6 +13,8 @@ namespace NoSQL.Neo4j.DAL.Repositories.Concreate.DataBaseNeo4jNoSQL
             _driver = driver;
         }
 
+        public Driver Driver { get { return _driver; } }
+
         public void Create(Post entity)
         {
             _driver.GraphClient.Cypher

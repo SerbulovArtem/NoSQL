@@ -12,26 +12,49 @@ using Neo4jPostsRepository = NoSQL.Neo4j.DAL.Repositories.Concreate.DataBaseNeo4
 using Neo4jCommentsRepository = NoSQL.Neo4j.DAL.Repositories.Concreate.DataBaseNeo4jNoSQL.CommentsRepository;
 using MongoDriver = NoSQL.Mongo.DAL.Data.Driver;
 using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
+using DynamoDriver = NoSQL.Dynamo.DAL.Data.Driver;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using NoSQL.Neo4j.DTO.Models;
+using Amazon.DynamoDBv2.DocumentModel;
+using System.Runtime.InteropServices;
 
-namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL
+namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoNoSQL
 {
-    public class PostsRepositoryMongoNeo4jBLL : MongoIPostsRepository, Neo4jIPostsRepository, Neo4jICommentsRepository
+    public class PostsRepositoryMongoNeo4jDynamoBLL : MongoIPostsRepository, Neo4jIPostsRepository, Neo4jICommentsRepository
     {
         private MongoPostsRepository _mongoPostsRepository;
         private Neo4jPostsRepository _neo4jPostsRepository;
         private Neo4jCommentsRepository _neo4jCommentsRepository;
-        public PostsRepositoryMongoNeo4jBLL(MongoDriver mongoDriver, Neo4jDriver neo4jDriver)
+        private DynamoDriver _dynamoDriver;
+        public PostsRepositoryMongoNeo4jDynamoBLL(MongoDriver mongoDriver, Neo4jDriver neo4jDriver, DynamoDriver dynamoDriver)
         {
             _mongoPostsRepository = new MongoPostsRepository(mongoDriver);
             _neo4jPostsRepository = new Neo4jPostsRepository(neo4jDriver);
             _neo4jCommentsRepository = new Neo4jCommentsRepository(neo4jDriver);
+            _dynamoDriver = dynamoDriver;
         }
 
         public void CreateComment(MongoComment mongoentity, string postid, string userid) 
         {
             var updateDefinition = Builders<MongoPost>.Update.Push("comments", mongoentity);
             _mongoPostsRepository.GetCollection().UpdateOne(p => p.Id == postid, updateDefinition);
+
+            var item = new Dictionary<string, AttributeValue>
+            {
+                ["PostID"] = new AttributeValue { S = postid },
+                ["CommentID"] = new AttributeValue { S = mongoentity.Id},
+                ["DateComment"] = new AttributeValue { S = mongoentity.CommentCreatedDate.ToString() },
+                ["Body"] = new AttributeValue { S = mongoentity.CommentBody },
+            };
+
+            var request = new PutItemRequest
+            {
+                TableName = "SocialNetwork",
+                Item = item,
+            };
+
+            _dynamoDriver.Client.PutItemAsync(request).Wait();
         }
 
         public void CreateCommentRelations(Neo4jComment neo4jentity, string postid, string userid)
@@ -140,6 +163,29 @@ namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL
         public void Delete(Neo4jPost entity)
         {
             _neo4jPostsRepository.Delete(entity);
+
+            var query = _neo4jPostsRepository.Driver.GraphClient.Cypher
+                .Match("(p:Post {postid: $PostId})-[r:HAS_COMMENT]-(c)")
+                .WithParam("PostId", entity.PostId)
+                .Return<Neo4jComment>("c");
+            var result = query.ResultsAsync.Result.ToList();
+
+            foreach(var comment in result)
+            {
+                var key = new Dictionary<string, AttributeValue>
+                {
+                    ["PostID"] = new AttributeValue { S = entity.PostId },
+                    ["CommentID"] = new AttributeValue { S = comment.CommentId },
+                };
+
+                var request = new DeleteItemRequest
+                {
+                    TableName = "SocialNetwork",
+                    Key = key,
+                };
+
+                _dynamoDriver.Client.DeleteItemAsync(request).Wait();
+            }
         }
 
         public void Create(Neo4jComment entity)
@@ -160,6 +206,22 @@ namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL
                 .WithParam("PostId", postid)
                 .Create("(u)-[:POSTED_BY]->(p)")
                 .ExecuteWithoutResultsAsync().Wait();
+        }
+
+        public List<Dictionary<string, AttributeValue>> SortedCommentsByDate(string postid)
+        {
+            var request = new QueryRequest
+            {
+                TableName = "SocialNetwork",
+                KeyConditionExpression = "PostID = :post_id",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
+                    {":post_id", new AttributeValue { S =  postid} }}
+            };
+
+            var response = _dynamoDriver.Client.QueryAsync(request);
+            response.Wait();
+
+            return response.Result.Items;
         }
     }
 }

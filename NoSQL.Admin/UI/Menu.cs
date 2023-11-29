@@ -2,14 +2,17 @@
 using NoSQL.Mongo.DTO.Models;
 using MongoDriver = NoSQL.Mongo.DAL.Data.Driver;
 using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
+using DynamoDriver = NoSQL.Dynamo.DAL.Data.Driver;
 using MongoPost = NoSQL.Mongo.DTO.Models.Post;
 using Neo4jPost = NoSQL.Neo4j.DTO.Models.Post;
 using MongoUser = NoSQL.Mongo.DTO.Models.User;
 using Neo4jUser = NoSQL.Neo4j.DTO.Models.User;
 using MongoComment = NoSQL.Mongo.DTO.Models.Comment;
 using Neo4jComment = NoSQL.Neo4j.DTO.Models.Comment;
+using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoNoSQL;
 using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL;
 using MongoDB.Driver;
+using Amazon.DynamoDBv2.Model;
 
 namespace NoSQL.Admin.UI
 {
@@ -17,7 +20,8 @@ namespace NoSQL.Admin.UI
     {
         private MongoDriver _mongoDriver;
         private Neo4jDriver _neo4JDriver;
-        private PostsRepositoryMongoNeo4jBLL _postsRepository;
+        private DynamoDriver _dynamoDriver;
+        private PostsRepositoryMongoNeo4jDynamoBLL _postsRepository;
         private UsersRepositoryMongoNeo4jBLL _usersRepository;
         private string _email;
         private string _password;
@@ -27,7 +31,8 @@ namespace NoSQL.Admin.UI
         {
             _mongoDriver = new MongoDriver(1);
             _neo4JDriver = new Neo4jDriver();
-            _postsRepository = new PostsRepositoryMongoNeo4jBLL(_mongoDriver, _neo4JDriver);
+            _dynamoDriver = new DynamoDriver();
+            _postsRepository = new PostsRepositoryMongoNeo4jDynamoBLL(_mongoDriver, _neo4JDriver, _dynamoDriver);
             _usersRepository = new UsersRepositoryMongoNeo4jBLL(_mongoDriver, _neo4JDriver);
 
             while (Authentication()) { }
@@ -414,8 +419,19 @@ namespace NoSQL.Admin.UI
                 foreach (var comment in existingPost.Comments) 
                 {
                     user = _usersRepository.GetCollection().Find(p => p.Id == comment.OwnerId).Single();
-                    Console.WriteLine($"Comment id: {comment.Id}\nBody: {comment.CommentBody}\nDate: {comment.CommentCreatedDate}, Likes: {comment.Like.Likes}\n" +
-                        $"Owner: {user.FirstName} {user.LastName}\n");
+                    //Console.WriteLine($"Comment id: {comment.Id}\nBody: {comment.CommentBody}\nDate: {comment.CommentCreatedDate}, Likes: {comment.Like.Likes}\n" +
+                        //$"Owner: {user.FirstName} {user.LastName}\n");
+                }
+
+                var _list = _postsRepository.SortedCommentsByDate(postId);
+
+                foreach (Dictionary<string, AttributeValue> item in _list)
+                {
+                    foreach (var attribute in item)
+                    {
+                        Console.WriteLine($"{attribute.Key}: {attribute.Value.S.ToString()}");
+                    }
+                    Console.WriteLine();
                 }
             }
             catch (Exception ex)
