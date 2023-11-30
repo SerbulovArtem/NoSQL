@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSQL.Neo4j.DAL", "NoSQL.NE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSQL.Neo4j.DTO", "NoSQL.Neo4j.DTO\NoSQL.Neo4j.DTO.csproj", "{29D98348-3CD3-4FD6-9E36-E5C2828FC910}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSQL.Dynamo.DAL", "NoSQL.Dynamo.DAL\NoSQL.Dynamo.DAL.csproj", "{58299D62-E390-4D21-AE40-4D8540384959}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSQL.Dynamo.DAL", "NoSQL.Dynamo.DAL\NoSQL.Dynamo.DAL.csproj", "{58299D62-E390-4D21-AE40-4D8540384959}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSQL.Redis.DAL", "NoSQL.Redis.DAL\NoSQL.Redis.DAL.csproj", "{3E7154C6-8C12-42B9-884E-5C08949ACCC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{58299D62-E390-4D21-AE40-4D8540384959}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58299D62-E390-4D21-AE40-4D8540384959}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58299D62-E390-4D21-AE40-4D8540384959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E7154C6-8C12-42B9-884E-5C08949ACCC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E7154C6-8C12-42B9-884E-5C08949ACCC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E7154C6-8C12-42B9-884E-5C08949ACCC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E7154C6-8C12-42B9-884E-5C08949ACCC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

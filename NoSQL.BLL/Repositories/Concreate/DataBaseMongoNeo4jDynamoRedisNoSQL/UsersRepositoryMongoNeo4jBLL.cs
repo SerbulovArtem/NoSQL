@@ -13,7 +13,7 @@ using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
 using NoSQL.Neo4j.DTO.Models;
 using Neo4jClient.Cypher;
 
-namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL
+namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoRedisNoSQL
 {
     public class UsersRepositoryMongoNeo4jBLL : MongoIUsersRepository, Neo4jIUsersRepository
     {

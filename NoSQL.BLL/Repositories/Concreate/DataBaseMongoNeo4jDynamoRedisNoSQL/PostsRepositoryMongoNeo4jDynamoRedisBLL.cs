@@ -1,5 +1,4 @@
 ﻿using MongoDB.Driver;
-using NoSQL.Mongo.DTO.Models;
 using MongoPost = NoSQL.Mongo.DTO.Models.Post;
 using Neo4jPost = NoSQL.Neo4j.DTO.Models.Post;
 using MongoComment = NoSQL.Mongo.DTO.Models.Comment;
@@ -13,26 +12,25 @@ using Neo4jCommentsRepository = NoSQL.Neo4j.DAL.Repositories.Concreate.DataBaseN
 using MongoDriver = NoSQL.Mongo.DAL.Data.Driver;
 using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
 using DynamoDriver = NoSQL.Dynamo.DAL.Data.Driver;
-using Amazon.DynamoDBv2;
+using RedisDriver = NoSQL.Redis.DAL.Data.Driver;
 using Amazon.DynamoDBv2.Model;
-using NoSQL.Neo4j.DTO.Models;
-using Amazon.DynamoDBv2.DocumentModel;
-using System.Runtime.InteropServices;
 
-namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoNoSQL
+namespace NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoRedisNoSQL
 {
-    public class PostsRepositoryMongoNeo4jDynamoBLL : MongoIPostsRepository, Neo4jIPostsRepository, Neo4jICommentsRepository
+    public class PostsRepositoryMongoNeo4jDynamoRedisBLL : MongoIPostsRepository, Neo4jIPostsRepository, Neo4jICommentsRepository
     {
         private MongoPostsRepository _mongoPostsRepository;
         private Neo4jPostsRepository _neo4jPostsRepository;
         private Neo4jCommentsRepository _neo4jCommentsRepository;
         private DynamoDriver _dynamoDriver;
-        public PostsRepositoryMongoNeo4jDynamoBLL(MongoDriver mongoDriver, Neo4jDriver neo4jDriver, DynamoDriver dynamoDriver)
+        private RedisDriver _redisDriver;
+        public PostsRepositoryMongoNeo4jDynamoRedisBLL(MongoDriver mongoDriver, Neo4jDriver neo4jDriver, DynamoDriver dynamoDriver, RedisDriver redisDriver)
         {
             _mongoPostsRepository = new MongoPostsRepository(mongoDriver);
             _neo4jPostsRepository = new Neo4jPostsRepository(neo4jDriver);
             _neo4jCommentsRepository = new Neo4jCommentsRepository(neo4jDriver);
             _dynamoDriver = dynamoDriver;
+            _redisDriver = redisDriver;
         }
 
         public void CreateComment(MongoComment mongoentity, string postid, string userid) 

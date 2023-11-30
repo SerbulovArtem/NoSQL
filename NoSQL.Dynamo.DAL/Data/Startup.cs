@@ -19,23 +19,5 @@ namespace NoSQL.Dynamo.DAL.Data
             var connString = configuration.GetSection("ConnectionStringsServer:" + server).Get<string>();
             return connString;
         }
-
-        public static string GetConnectionStringsDatabase(int type)
-        {
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonFile("D:\\University\\NoSQL\\NoSQL\\NoSQL.DAL\\Data\\appsettings.json");
-            var configuration = builder.Build();
-            string database = "";
-            if (type == 1)
-            {
-                database = "SocialNetworkDatabase";
-            }
-            else if (type == 0)
-            {
-                database = "SocialNetworkTestDatabase";
-            }
-            var connString = configuration.GetSection("ConnectionStringsDatabase:" + database).Get<string>();
-            return connString;
-        }
     }
 }

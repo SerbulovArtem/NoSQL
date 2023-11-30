@@ -1,18 +1,19 @@
-﻿using NoSQL.Mongo.DAL.Data;
+﻿using System.Text;
 using NoSQL.Mongo.DTO.Models;
 using MongoDriver = NoSQL.Mongo.DAL.Data.Driver;
 using Neo4jDriver = NoSQL.Neo4j.DAL.Data.Driver;
 using DynamoDriver = NoSQL.Dynamo.DAL.Data.Driver;
+using RedisDriver = NoSQL.Redis.DAL.Data.Driver;
 using MongoPost = NoSQL.Mongo.DTO.Models.Post;
 using Neo4jPost = NoSQL.Neo4j.DTO.Models.Post;
 using MongoUser = NoSQL.Mongo.DTO.Models.User;
 using Neo4jUser = NoSQL.Neo4j.DTO.Models.User;
 using MongoComment = NoSQL.Mongo.DTO.Models.Comment;
 using Neo4jComment = NoSQL.Neo4j.DTO.Models.Comment;
-using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoNoSQL;
-using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jNoSQL;
+using NoSQL.BLL.Repositories.Concreate.DataBaseMongoNeo4jDynamoRedisNoSQL;
 using MongoDB.Driver;
 using Amazon.DynamoDBv2.Model;
+using NoSQL.Neo4j.DTO.Models;
 
 namespace NoSQL.Admin.UI
 {
@@ -21,19 +22,26 @@ namespace NoSQL.Admin.UI
         private MongoDriver _mongoDriver;
         private Neo4jDriver _neo4JDriver;
         private DynamoDriver _dynamoDriver;
-        private PostsRepositoryMongoNeo4jDynamoBLL _postsRepository;
+        private RedisDriver _redisDriver;
+        private PostsRepositoryMongoNeo4jDynamoRedisBLL _postsRepository;
         private UsersRepositoryMongoNeo4jBLL _usersRepository;
         private string _email;
         private string _password;
         private string _ownerId;
+        private long _ttl;
+        private bool _ttl_flag;
+        private int _numberkeys;
 
         public Menu()
         {
             _mongoDriver = new MongoDriver(1);
             _neo4JDriver = new Neo4jDriver();
             _dynamoDriver = new DynamoDriver();
-            _postsRepository = new PostsRepositoryMongoNeo4jDynamoBLL(_mongoDriver, _neo4JDriver, _dynamoDriver);
+            _redisDriver = new RedisDriver();
+            _postsRepository = new PostsRepositoryMongoNeo4jDynamoRedisBLL(_mongoDriver, _neo4JDriver, _dynamoDriver, _redisDriver);
             _usersRepository = new UsersRepositoryMongoNeo4jBLL(_mongoDriver, _neo4JDriver);
+            _ttl = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() + 120;
+            _ttl_flag = true;
 
             while (Authentication()) { }
         }
@@ -197,7 +205,7 @@ namespace NoSQL.Admin.UI
 
         public bool IsAuthenticated(string email, string password)
         {
-            User user;
+            MongoUser user;
             try 
             {
                 user = _usersRepository.GetCollection().Find(p => p.Email == email).Single();
@@ -246,18 +254,57 @@ namespace NoSQL.Admin.UI
 
         public void PrintAllPosts()
         {
-            var list = _postsRepository.GetCollection().Find(p => true).ToList();
-            foreach (var post in list) 
+            if (((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() > _ttl)
             {
-                var ownerUser = _usersRepository.GetCollection().Find(p => p.Id == post.OwnerId).Single();
-                Console.WriteLine($"PostId: {post.Id}\nTitle: {post.Title}\nBody: {post.PostBody}\nCategory: {post.Category}, Date: {post.PostCreatedDate}, Likes: {post.Like.Likes}\n" +
-                    $"Owner: {ownerUser.FirstName} {ownerUser.LastName}\n");
+                _ttl_flag = true;
+            }
+            if (_ttl_flag)
+            {
+                _ttl = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() + 120;
+
+                var list = _postsRepository.GetCollection().Find(p => true).ToList();
+
+                _numberkeys = 0;
+                foreach (var post in list)
+                {
+                    byte[][] obj_vals = null;
+                    var ownerUser = _usersRepository.GetCollection().Find(p => p.Id == post.OwnerId).Single();
+
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Post Id"), Encoding.UTF8.GetBytes(post.Id));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Title"), Encoding.UTF8.GetBytes(post.Title));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Post Body"), Encoding.UTF8.GetBytes(post.PostBody));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Category"), Encoding.UTF8.GetBytes(post.Category));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Date"), Encoding.UTF8.GetBytes(post.PostCreatedDate.ToString()));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Likes"), Encoding.UTF8.GetBytes(post.Like.Likes.ToString()));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Owner First Name"), Encoding.UTF8.GetBytes(ownerUser.FirstName));
+                    _redisDriver.Client.HSet(_numberkeys.ToString(), Encoding.UTF8.GetBytes("Owner Last Name"), Encoding.UTF8.GetBytes(ownerUser.LastName));
+
+                    _redisDriver.Client.ExpireAt(_numberkeys.ToString(), _ttl);
+
+                    _numberkeys++;
+                    _ttl_flag = false;
+                }
+            }
+            if(((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() <= _ttl || _ttl_flag == true)
+            {
+                for (int i = 0; i < _numberkeys; i++)
+                {
+                    byte[][] obj_vals = null;
+
+                    obj_vals = _redisDriver.Client.HGetAll(i.ToString());
+                    
+                    for (int j = 0; j < obj_vals.Length; j += 2)
+                    {
+                        Console.WriteLine(Encoding.UTF8.GetString(obj_vals[j]) + ": " + Encoding.UTF8.GetString(obj_vals[j + 1]));
+                    }
+                    Console.WriteLine();
+                }
             }
         }
 
         public void CreatePost()
         {
-            Console.WriteLine("Enter title: ");
+            Console.WriteLine("Enter title:");
             string title = Console.ReadLine();
             Console.WriteLine("Enter body:");
             string postBody = Console.ReadLine();
@@ -276,7 +323,7 @@ namespace NoSQL.Admin.UI
                     UsersIdLiked = new List<string>()
                 },
                 OwnerId = _ownerId,
-                Comments = new List<Comment>()
+                Comments = new List<MongoComment>()
             };
 
             _postsRepository.Create(newPost);
@@ -320,7 +367,7 @@ namespace NoSQL.Admin.UI
                             UsersIdLiked = new List<string>()
                         },
                         OwnerId = _ownerId,
-                        Comments = new List<Comment>()
+                        Comments = new List<MongoComment>()
                     };
                     _postsRepository.Replace(newPost);
 
@@ -415,7 +462,7 @@ namespace NoSQL.Admin.UI
             try
             {
                 var existingPost = _postsRepository.GetCollection().Find(p => p.Id == postId).Single();
-                User user;
+                MongoUser user;
                 foreach (var comment in existingPost.Comments) 
                 {
                     user = _usersRepository.GetCollection().Find(p => p.Id == comment.OwnerId).Single();
